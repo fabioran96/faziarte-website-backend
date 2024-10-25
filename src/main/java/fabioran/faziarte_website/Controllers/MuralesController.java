@@ -13,41 +13,45 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/murales")
-@RequiredArgsConstructor
+@RequestMapping("/admin")
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
-
+@RequiredArgsConstructor
 public class MuralesController {
 
     private final MuralesService muralesService;
 
-    @GetMapping
+    @GetMapping ("/murales")
     public List<Murales> getAllMurales() {
         return muralesService.getAllMurales();
     }
 
-    @PostMapping
+    @PostMapping ("/murales")
     public Murales addMurales(
             @RequestParam String name,
             @RequestParam String description,
             @RequestParam double lat,
             @RequestParam double lng,
-            @RequestParam MultipartFile image
-    ) {
+            @RequestParam MultipartFile image) {
         return muralesService.addMurales(name, description, lat, lng, image);
     }
 
-        @Autowired
-        private MuralesRepository muralesRepository;  // Assumi che ci sia un repository JPA per salvare i murales
-
-        @PostMapping("/add-murale")
-        public ResponseEntity<String> addMurale(@RequestBody Murales murales) {
-            try {
-                muralesRepository.save(murales); // Salva il nuovo murale nel database
-                return ResponseEntity.ok("Murale aggiunto con successo!");
-            } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Errore durante l'aggiunta del murale");
-            }
-        }
+    @PutMapping("/murales/{id}")
+    public ResponseEntity<Murales> updateMurales(
+            @PathVariable Long id,
+            @RequestParam String name,
+            @RequestParam String description,
+            @RequestParam double lat,
+            @RequestParam double lng,
+            @RequestParam(required = false) MultipartFile image) {
+        Murales updatedMurales = muralesService.updateMurales(id, name, description, lat, lng, image);
+        return ResponseEntity.ok(updatedMurales);
     }
 
+    @DeleteMapping("/murales/{id}")
+    public ResponseEntity<Void> deleteMurales(@PathVariable Long id) {
+        muralesService.deleteMurales(id);
+        return ResponseEntity.noContent().build();
+    }
+
+
+}

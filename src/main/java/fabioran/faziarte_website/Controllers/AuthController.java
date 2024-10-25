@@ -22,12 +22,15 @@ public class AuthController {
         String username = credentials.get("username");
         String password = credentials.get("password");
 
-        // Debug temporaneo per vedere cosa riceviamo dal frontend
+        // Debug temporaneo
         System.out.println("Username: " + username + ", Password: " + password);
 
-        // Confronto con le credenziali preimpostate
+
         if ("fabioran".equals(username) && "12345".equals(password)) {
             String token = jwtUtil.generateToken(username);
+
+            System.out.println("Generated token: " + token);
+
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
             return response;
@@ -35,4 +38,6 @@ public class AuthController {
             throw new RuntimeException("Credenziali non valide");
         }
     }
+
+
 }

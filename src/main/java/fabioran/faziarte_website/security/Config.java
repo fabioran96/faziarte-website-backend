@@ -3,6 +3,7 @@ package fabioran.faziarte_website.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,36 +29,35 @@ public class Config {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())  // Disabilitiamo CSRF per applicazioni stateless
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // Configurazione CORS
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Sessione stateless
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/products", "/public/**", "/checkout/**", "/options/**").permitAll()  // Rotte pubbliche
-                        .requestMatchers("/admin/**").authenticated()  // Rotte admin protette
-                        .anyRequest().permitAll()  // Permetti altre rotte per sicurezza (se necessario)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // Allow all OPTIONS requests
+                        .requestMatchers("/login", "/products/**", "/public/**", "/checkout/**", "/options/**", "/murales/**").permitAll()
+                        .requestMatchers("/admin/**").authenticated()
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);  // Filtro JWT
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(11);  // Algoritmo di hash per password
+        return new BCryptPasswordEncoder(11);
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));  // Origini consentite
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));  // Metodi HTTP consentiti
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));  // Header consentiti
-        configuration.setAllowCredentials(true);  // Permetti credenziali (cookie/token)
-        configuration.addExposedHeader("Authorization");  // Esponi header specifici come Authorization
-
-        // Risolvi i problemi di richieste preflight (OPTIONS)
-        configuration.setMaxAge(3600L);  // Tempo di cache per le richieste preflight
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowCredentials(true);
+        configuration.addExposedHeader("Authorization");
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
